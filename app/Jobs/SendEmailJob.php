@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\NewPostEmail;
+use App\Models\EmailLog;
 use App\Models\Post;
 use App\Models\Subscriber;
 use Illuminate\Bus\Queueable;
@@ -37,7 +38,20 @@ class SendEmailJob implements ShouldQueue
      */
     public function handle()
     {
-        $email = new NewPostEmail($this->post);
-        Mail::to($this->subscriber->email)->send($email);
+        // check if already sent
+        if(
+            !EmailLog::where('subscriber_id', '=', $this->subscriber->id)
+                ->where('post_id', '=', $this->post->id)
+                ->exists()
+        ) {
+            $email = new NewPostEmail($this->post);
+            Mail::to($this->subscriber->email)->send($email);
+
+            // update email log
+            $mailLog = new EmailLog();
+            $mailLog->subscriber_id = $this->subscriber->id;
+            $mailLog->post_id       = $this->post->id;
+            $mailLog->save();
+        }
     }
 }

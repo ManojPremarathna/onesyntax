@@ -59,6 +59,7 @@ class PostController extends Controller
         $post->save();
 
         // send emails to subscribers
+        // Todo: add event for new post
         $subscribers = Subscriber::where('website_id', '=', $request->website_id)->get();
 
         foreach ($subscribers as $subscriber) {
